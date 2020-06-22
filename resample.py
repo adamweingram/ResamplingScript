@@ -49,7 +49,7 @@ def write_resampled(data, path, profile):
             print("--- Outputted to {} ---".format(path))
 
 
-def load_and_resample(file, output_path, target_res=10):
+def load_and_resample(file, output_path, naming_scheme, target_res=10):
     if not os.path.isfile(file):
         print('File ' + file + ' not found.')
         sys.exit()
@@ -85,9 +85,9 @@ def load_and_resample(file, output_path, target_res=10):
         # else:
         #     raise RuntimeError("No resampled datasets returned! Check your script!")
 
-            # Read each resampled band and write it to stack
+        # Read each resampled band and write it to stack
         for ds_num, ds_dict in enumerate(resampled_subdatasets):
-            to_create = "/{}/test_{}.tiff".format(output_path, ds_num)
+            to_create = "/{}/{}_{}.tiff".format(output_path, naming_scheme, ds_num)
             ds_dict["profile"].update(driver="GTiff", dtype=rio.uint16)
             write_resampled(ds_dict["data"], to_create, ds_dict["profile"])
 
@@ -96,10 +96,15 @@ def load_and_resample(file, output_path, target_res=10):
 
 @click.command()
 @click.option("--source-path", '-s', required=True, help="Path of source file to resample")
-@click.option("--output-path", '-o', required=True, help="Path of the intended output file")
+@click.option("--output-path", '-o', required=True, help="Path of the intended output directory")
+@click.option("--naming-scheme", '-n',
+              required=False,
+              default="output",
+              help="The 'base' of the filename (e.g. 'foo' in 'foo_1.tiff')"
+              )
 @click.option("--target-resolution", '-t', required=True, help="The resolution to resample to")
-def main(source_path, output_path, target_resolution):
-    out = load_and_resample(source_path, output_path, target_res=int(target_resolution))
+def main(source_path, output_path, naming_scheme, target_resolution):
+    out = load_and_resample(source_path, output_path, naming_scheme, target_res=int(target_resolution))
     print("Done.")
 
 
