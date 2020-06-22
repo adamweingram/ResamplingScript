@@ -7,7 +7,7 @@ from rasterio import Affine
 import rasterio as rio
 
 
-def resample_band(dataset, target_resolution):
+def resample_band(dataset, target_resolution, resampling_method):
     scaling = int(dataset.res[0]) / float(target_resolution)
 
     profile = copy.deepcopy(dataset.profile)
@@ -29,7 +29,7 @@ def resample_band(dataset, target_resolution):
             int(height),
             int(width)
         ),
-        resampling=Resampling.bilinear
+        resampling=resampling_method
     )
 
     # Create output dictionary
@@ -49,7 +49,7 @@ def write_resampled(data, path, profile):
         print("[INFO] Raster written to {}".format(path))
 
 
-def load_and_resample(file, output_path, naming_scheme, target_res=10):
+def load_and_resample(file, output_path, naming_scheme, target_res, resampling_method):
     if not os.path.isfile(file):
         print('File ' + file + ' not found.')
         sys.exit()
@@ -66,7 +66,7 @@ def load_and_resample(file, output_path, naming_scheme, target_res=10):
     # because we're rescaling the bounds of the image, NOT THE PIXELS THEMSELVES! Therefore, the operation
     # is essentially the inverse of the naive approach.
     resampled_subdatasets = list(map(
-        lambda sds: resample_band(rio.open(sds), float(target_res)),
+        lambda sds: resample_band(rio.open(sds), float(target_res), resampling_method=resampling_method),
         sds_paths
     ))
 
@@ -102,10 +102,16 @@ def load_and_resample(file, output_path, naming_scheme, target_res=10):
               default="output",
               help="The 'base' of the filename (e.g. 'foo' in 'foo_1.tiff')"
               )
-@click.option("--target-resolution", '-t', required=True, help="The resolution to resample to")
+@click.option("--target-resolution", '-t', required=True, default=10, help="The resolution to resample to")
 def main(source_path, output_path, naming_scheme, target_resolution):
     print("[INFO] --- Starting Resample... ---")
-    out = load_and_resample(source_path, output_path, naming_scheme, target_res=int(target_resolution))
+    out = load_and_resample(
+        file=source_path,
+        output_path=output_path,
+        naming_scheme=naming_scheme,
+        target_res=int(target_resolution),
+        resampling_method=Resampling.bilinear
+    )
     print("[INFO] --- Done. ---")
 
 
