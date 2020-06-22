@@ -46,7 +46,7 @@ def write_resampled(data, path, profile):
         for band_num, data_arr in enumerate(data, start=1):
             # print("Would have written to band {} in file {}".format(band_num, output_path))
             dst.write_band(band_num, data_arr.astype(rio.uint16))
-            print("--- Outputted to {} ---".format(path))
+        print("[INFO] Raster written to {}".format(path))
 
 
 def load_and_resample(file, output_path, naming_scheme, target_res=10):
