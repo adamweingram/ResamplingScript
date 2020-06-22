@@ -1,36 +1,36 @@
 import os
 import sys
-import fnmatch
 import click
 import copy
-from scipy.ndimage import zoom
-from osgeo import gdal
+from rasterio.enums import Resampling
+from rasterio import Affine
 import rasterio as rio
-import numpy as np
 
-
-# from acolite.sentinel import get_rtoa
 
 def resample_band(dataset, target_resolution):
     scaling = int(dataset.res[0]) / float(target_resolution)
-    profile = dataset.profile.copy()
 
+    profile = copy.deepcopy(dataset.profile)
+    trans = copy.deepcopy(dataset.transform)
+    transform = Affine(trans.a / scaling, trans.b, trans.c, trans.d, trans.e / scaling, trans.f)
+    height = copy.deepcopy(dataset.height) * scaling
+    width = copy.deepcopy(dataset.width) * scaling
     profile.update(
-        res=(float(target_resolution), float(target_resolution))
+        res=(float(target_resolution), float(target_resolution)),
+        transform=transform,
+        height=height,
+        width=width
     )
 
-    raw_read = dataset.read()
-
-    resampled = np.array(list(map(
-        lambda layer: zoom(layer, scaling, order=0, mode='nearest'),
-        raw_read
-    )))
-
-    # Calculate Profile Changes
-    # transform = dataset.transform * dataset.transform.scale(
-    #     (resampled.width / data.shape[-1]),
-    #     (resampled.height / data.shape[-2])
-    # )
+    # resample data to target shape
+    resampled = dataset.read(
+        out_shape=(
+            dataset.count,
+            int(height),
+            int(width)
+        ),
+        resampling=Resampling.bilinear
+    )
 
     # Create output dictionary
     output = {
