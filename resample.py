@@ -8,8 +8,11 @@ import rasterio as rio
 
 
 def resample_band(dataset, target_resolution, resampling_method):
+
+    # Calculate scale factor
     scaling = int(dataset.res[0]) / float(target_resolution)
 
+    # Calculate profile and transfor elements
     profile = copy.deepcopy(dataset.profile)
     trans = copy.deepcopy(dataset.transform)
     transform = Affine(trans.a / scaling, trans.b, trans.c, trans.d, trans.e / scaling, trans.f)
@@ -22,7 +25,7 @@ def resample_band(dataset, target_resolution, resampling_method):
         width=width
     )
 
-    # resample data to target shape
+    # Resample data to target resolution
     resampled = dataset.read(
         out_shape=(
             dataset.count,
@@ -54,17 +57,9 @@ def load_and_resample(file, output_path, naming_scheme, target_res, resampling_m
         print('File ' + file + ' not found.')
         sys.exit()
 
-    # gdal.UseExceptions()
-    # raw_ds = gdal.Open(file)
-    # datasets = raw_ds.GetSubdatasets()
-
     with rio.open(file) as raw_ds:
         sds_paths = raw_ds.subdatasets
 
-    # WARNING In its current implementation, this using a spline interpolation approach to resampling!
-    # Note In the original code, the sds resolution was bing divided by the target res. This is required
-    # because we're rescaling the bounds of the image, NOT THE PIXELS THEMSELVES! Therefore, the operation
-    # is essentially the inverse of the naive approach.
     resampled_subdatasets = list(map(
         lambda sds: resample_band(rio.open(sds), float(target_res), resampling_method=resampling_method),
         sds_paths
