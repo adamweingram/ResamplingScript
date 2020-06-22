@@ -66,7 +66,7 @@ def load_and_resample(file, output_path, target_res=10):
     # because we're rescaling the bounds of the image, NOT THE PIXELS THEMSELVES! Therefore, the operation
     # is essentially the inverse of the naive approach.
     resampled_subdatasets = list(map(
-        lambda sds: resample_band(rio.open(sds), float(10.0)),
+        lambda sds: resample_band(rio.open(sds), float(target_res)),
         sds_paths
     ))
 
@@ -97,8 +97,9 @@ def load_and_resample(file, output_path, target_res=10):
 @click.command()
 @click.option("--source-path", '-s', required=True, help="Path of source file to resample")
 @click.option("--output-path", '-o', required=True, help="Path of the intended output file")
-def main(source_path, output_path):
-    out = load_and_resample(source_path, output_path, target_res=10)
+@click.option("--target-resolution", '-t', required=True, help="The resolution to resample to")
+def main(source_path, output_path, target_resolution):
+    out = load_and_resample(source_path, output_path, target_res=int(target_resolution))
     print("Done.")
 
 
