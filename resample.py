@@ -103,15 +103,30 @@ def load_and_resample(file, output_path, naming_scheme, target_res, resampling_m
               help="The 'base' of the filename (e.g. 'foo' in 'foo_1.tiff')"
               )
 @click.option("--target-resolution", '-t', required=True, default=10, help="The resolution to resample to")
-def main(source_path, output_path, naming_scheme, target_resolution):
+@click.option('--resamping-method',
+              required=False,
+              type=click.Choice(['nearest', 'bilinear', 'cubic', 'cubicspline'], case_sensitive=False),
+              default=Resampling.nearest,
+              help="Which resampling method to use when resampling. Default is nearest-neighbor."
+              )
+def main(source_path, output_path, naming_scheme, target_resolution, resampling_method):
     print("[INFO] --- Starting Resample... ---")
+
+    rs_methods = {
+        "nearest": Resampling.nearest,
+        "bilinear": Resampling.bilinear,
+        "cubic": Resampling.cubic,
+        "cubicspline": Resampling.cubic_spline
+    }
+
     out = load_and_resample(
         file=source_path,
         output_path=output_path,
         naming_scheme=naming_scheme,
         target_res=int(target_resolution),
-        resampling_method=Resampling.bilinear
+        resampling_method=rs_methods[resampling_method]
     )
+
     print("[INFO] --- Done. ---")
 
 
