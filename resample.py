@@ -104,8 +104,9 @@ def load_and_resample(file, output_path, naming_scheme, target_res=10):
               )
 @click.option("--target-resolution", '-t', required=True, help="The resolution to resample to")
 def main(source_path, output_path, naming_scheme, target_resolution):
+    print("[INFO] --- Starting Resample... ---")
     out = load_and_resample(source_path, output_path, naming_scheme, target_res=int(target_resolution))
-    print("Done.")
+    print("[INFO] --- Done. ---")
 
 
 if __name__ == '__main__':
