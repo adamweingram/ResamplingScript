@@ -101,7 +101,7 @@ def load_and_resample(file, output_path, naming_scheme, target_res, resampling_m
 @click.option('--resampling-method',
               required=False,
               type=click.Choice(['nearest', 'bilinear', 'cubic', 'cubicspline'], case_sensitive=False),
-              default=Resampling.nearest,
+              default='nearest',
               help="Which resampling method to use when resampling. Default is nearest-neighbor."
               )
 def main(source_path, output_path, naming_scheme, target_resolution, resampling_method):
