@@ -12,7 +12,15 @@ import rasterio as rio
 def resample_band(dataset: rio.io.DatasetReader,
                   target_resolution: float,
                   resampling_method: Resampling,
-                  resampler: str):
+                  resampler: str) -> dict:
+    """Resample a Band (2D NDArray)
+
+    :param dataset: Input dataset
+    :param target_resolution: Resolution of the output dataset: what you want to resample to
+    :param resampling_method: Which method to use for resampling (only applicable to rasterio!)
+    :param resampler: Which resampling function to use (e.g. Rasterio vs SciPy zoom)
+    :return: Dictionary containing resampled data ("data") and the resampled profile ("profile")
+    """
 
     # Calculate scale factor
     scaling = int(dataset.res[0]) / float(target_resolution)
@@ -32,7 +40,7 @@ def resample_band(dataset: rio.io.DatasetReader,
 
     # Resample data to target resolution
     if resampler is "rasterio":
-        print("[INFO] Using rasterio resampler...")
+        print("[INFO] Using Rasterio resampler...")
         resampled = dataset.read(
             out_shape=(
                 dataset.count,
@@ -43,6 +51,7 @@ def resample_band(dataset: rio.io.DatasetReader,
         )
     else:
         print("[INFO] Using scipy zoom resampler...")
+        print("[WARNING] Zoom resampler does not honor resampling methods! Use the Rasterio resampler for this!")
         raw_read = dataset.read()
         resampled = np.array(list(map(
             lambda layer: zoom(layer, scaling, order=0, mode='nearest'),
