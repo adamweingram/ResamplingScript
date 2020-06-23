@@ -7,7 +7,7 @@ from rasterio import Affine
 import rasterio as rio
 
 
-def resample_band(dataset, target_resolution, resampling_method):
+def resample_band(dataset: rio.io.DatasetReader, target_resolution: float, resampling_method: Resampling):
 
     # Calculate scale factor
     scaling = int(dataset.res[0]) / float(target_resolution)
