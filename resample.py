@@ -104,7 +104,7 @@ def load_and_resample(file: str, output_path: str, naming_scheme: str, target_re
               default='nearest',
               help="Which resampling method to use when resampling. Default is nearest-neighbor."
               )
-def main(source_path, output_path, naming_scheme, target_resolution, resampling_method):
+def main(source_path: str, output_path: str, naming_scheme: str, target_resolution: str, resampling_method: str):
     print("[INFO] --- Starting Resample... ---")
 
     rs_methods = {
