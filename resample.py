@@ -87,7 +87,18 @@ def load_and_resample(file: str,
                       naming_scheme: str,
                       target_res: int,
                       resampling_method: Resampling,
-                      resampler: str):
+                      resampler: str) -> list:
+    """Load and Resample Raster File
+
+    :param file: Path of input raster data
+    :param output_path: Path to write output rasters to
+    :param naming_scheme: Base unit of output file names (e.g. "foo" in "foo_104.tiff")
+    :param target_res: Resolution to resample to (e.g. "10" for "10 meters")
+    :param resampling_method: Which resampling method to use (e.g. nearest-neighbor or bilinear)
+    :param resampler: Which resampling function set to use (e.g. Rasterio or SciPy zoom)
+    :return: A list of resampled datasets formatted as directories containing data and profiles
+    """
+
     if not os.path.isfile(file):
         print('File ' + file + ' not found.')
         sys.exit()
