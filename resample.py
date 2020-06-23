@@ -52,7 +52,7 @@ def write_resampled(data, path, profile):
         print("[INFO] Raster written to {}".format(path))
 
 
-def load_and_resample(file, output_path, naming_scheme, target_res, resampling_method):
+def load_and_resample(file: str, output_path: str, naming_scheme: str, target_res: int, resampling_method: Resampling):
     if not os.path.isfile(file):
         print('File ' + file + ' not found.')
         sys.exit()
