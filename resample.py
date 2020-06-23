@@ -67,7 +67,14 @@ def resample_band(dataset: rio.io.DatasetReader,
     return output
 
 
-def write_resampled(data, path, profile):
+def write_resampled(data: np.ndarray, path: str, profile: rio.profiles.Profile) -> None:
+    """Write a Dataset to Disk
+
+    :param data: Dataset to be written
+    :param path: Path of the output file
+    :param profile: Profile of the dataset
+    """
+
     with rio.open(path.encode('unicode-escape').decode(), 'w', **profile) as dst:
         for band_num, data_arr in enumerate(data, start=1):
             # print("Would have written to band {} in file {}".format(band_num, output_path))
