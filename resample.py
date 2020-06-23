@@ -4,10 +4,15 @@ import click
 import copy
 from rasterio.enums import Resampling
 from rasterio import Affine
+from scipy.ndimage import zoom
+import numpy as np
 import rasterio as rio
 
 
-def resample_band(dataset: rio.io.DatasetReader, target_resolution: float, resampling_method: Resampling):
+def resample_band(dataset: rio.io.DatasetReader,
+                  target_resolution: float,
+                  resampling_method: Resampling,
+                  resampler: str):
 
     # Calculate scale factor
     scaling = int(dataset.res[0]) / float(target_resolution)
@@ -26,14 +31,23 @@ def resample_band(dataset: rio.io.DatasetReader, target_resolution: float, resam
     )
 
     # Resample data to target resolution
-    resampled = dataset.read(
-        out_shape=(
-            dataset.count,
-            int(height),
-            int(width)
-        ),
-        resampling=resampling_method
-    )
+    if resampler is "rasterio":
+        print("[INFO] Using rasterio resampler...")
+        resampled = dataset.read(
+            out_shape=(
+                dataset.count,
+                int(height),
+                int(width)
+            ),
+            resampling=resampling_method
+        )
+    else:
+        print("[INFO] Using scipy zoom resampler...")
+        raw_read = dataset.read()
+        resampled = np.array(list(map(
+            lambda layer: zoom(layer, scaling, order=0, mode='nearest'),
+            raw_read
+        )))
 
     # Create output dictionary
     output = {
@@ -52,7 +66,12 @@ def write_resampled(data, path, profile):
         print("[INFO] Raster written to {}".format(path))
 
 
-def load_and_resample(file: str, output_path: str, naming_scheme: str, target_res: int, resampling_method: Resampling):
+def load_and_resample(file: str,
+                      output_path: str,
+                      naming_scheme: str,
+                      target_res: int,
+                      resampling_method: Resampling,
+                      resampler: str):
     if not os.path.isfile(file):
         print('File ' + file + ' not found.')
         sys.exit()
@@ -61,7 +80,12 @@ def load_and_resample(file: str, output_path: str, naming_scheme: str, target_re
         sds_paths = raw_ds.subdatasets
 
     resampled_subdatasets = list(map(
-        lambda sds: resample_band(rio.open(sds), float(target_res), resampling_method=resampling_method),
+        lambda sds: resample_band(
+            rio.open(sds),
+            float(target_res),
+            resampling_method=resampling_method,
+            resampler=resampler
+        ),
         sds_paths
     ))
 
@@ -104,7 +128,17 @@ def load_and_resample(file: str, output_path: str, naming_scheme: str, target_re
               default='nearest',
               help="Which resampling method to use when resampling. Default is nearest-neighbor."
               )
-def main(source_path: str, output_path: str, naming_scheme: str, target_resolution: str, resampling_method: str):
+@click.option('--select-resampler',
+              required=False,
+              type=click.Choice(['rasterio', 'zoom'], case_sensitive=False),
+              default='zoom'
+              )
+def main(source_path: str,
+         output_path: str,
+         naming_scheme: str,
+         target_resolution: str,
+         resampling_method: str,
+         select_resampler: str):
     print("[INFO] --- Starting Resample... ---")
 
     rs_methods = {
@@ -119,7 +153,8 @@ def main(source_path: str, output_path: str, naming_scheme: str, target_resoluti
         output_path=output_path,
         naming_scheme=naming_scheme,
         target_res=int(target_resolution),
-        resampling_method=rs_methods[resampling_method]
+        resampling_method=rs_methods[resampling_method],
+        resampler=select_resampler
     )
 
     print("[INFO] --- Done. ---")
